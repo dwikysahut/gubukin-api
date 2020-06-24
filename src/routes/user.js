@@ -3,14 +3,14 @@ const Route = express.Router()
 
 const userController = require('../controllers/user');
 const upload =require('../helpers/fileUpload')
-
+const { authentication } = require('../middleware/auth')
 
 
 Route
-    .get('/',userController.getUser)
-    .post('/',upload,userController.postUser)
-    .put('/:id',upload,userController.putUser)
-    .delete('/:id',userController.deleteUser)
+    .get('/',authentication,userController.getUser)
+    .post('/',authentication,upload,userController.postUser)
+    .put('/:id',authentication,upload,userController.putUser)
+    .delete('/:id',authentication,userController.deleteUser)
 
 
 
