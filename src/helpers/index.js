@@ -1,4 +1,7 @@
-const fs = require ('fs')
+const fs = require('fs')
+const nodemailer = require('nodemailer')
+const dotenv = require('dotenv')
+dotenv.config()
 
 module.exports = {
     response:function (response,status,data,pagination){

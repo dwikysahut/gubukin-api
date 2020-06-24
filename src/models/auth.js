@@ -64,7 +64,7 @@ module.exports = {
     },
     refreshToken: function (token) {
         return new Promise(function (resolve, reject) {
-            jwt.verify(token, process.env.TOKEN_REFRESH, function (error, result) {
+            jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, function (error, result) {
                 if (error && error.name === "TokenExpiredError" || error && error.name === "JsonWebTokenError") {
                     reject(new Error(error))
                 } else {

@@ -46,8 +46,8 @@ module.exports = {
                 helper.response(response, 500, { message: "Please verify your account first!" })
             } else {
                 delete result.password
-                const token = jwt.sign({ result }, process.env.TOKEN_SECRET, { expiresIn: '20s' })
-                const refreshToken = jwt.sign({ result }, process.env.TOKEN_REFRESH)
+                const token = jwt.sign({ result }, process.env.SECRET_KEY, { expiresIn: '20s' })
+                const refreshToken = jwt.sign({ result }, process.env.REFRESH_TOKEN_SECRET)
                 const newData = {
                     ...result,
                     token,
@@ -86,7 +86,7 @@ module.exports = {
             if (result === undefined) {
                 helper.response(response, 500, { message: "Invalid email or password" })
             } else {
-                const token = jwt.sign({ result }, process.env.TOKEN_SECRET, { expiresIn: '1h' })
+                const token = jwt.sign({ result }, process.env.SECRET_KEY, { expiresIn: '1h' })
                 helper.response(response, 200, { token: token })
             }
         } catch (error) {
