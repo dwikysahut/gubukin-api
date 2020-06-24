@@ -10,7 +10,7 @@ const cors = require('cors');
 //     database: process.env.DB_DATABASE
 // });
 const routeNavigator = require('./src/index')
-const server = app.listen(8080, "127.0.0.1", function() {
+const server = app.listen(process.env.PORT, process.env.HOST, function() {
     const host = server.address().address
     const port = server.address().port
 
