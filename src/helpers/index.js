@@ -45,5 +45,19 @@ module.exports = {
                 return true
             }
         })
+    },
+    convertObjectToPlainText: function (object, prefix) {
+        let string = [],
+            plainText;
+        for (plainText in object) {
+            if (object.hasOwnProperty(plainText)) {
+                const k = prefix ? prefix + "[" + plainText + "]" : plainText,
+                    v = object[plainText];
+                string.push((v !== null && typeof v === "object") ?
+                    convertObjectToPlainText(v, k) :
+                    encodeURIComponent(k) + "=" + encodeURIComponent(v));
+            }
+        }
+        return string.join("&");
     }
 }
