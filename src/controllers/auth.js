@@ -12,12 +12,15 @@ module.exports = {
             const password = setData.password
             const random_code = helper.random(6)
             const verify_code = bcrypt.hashSync(random_code, 10)
-            const hash = bcrypt.hashSync(password, 18)
+             const hash = bcrypt.hashSync(password, 18)
             setData.password = hash
-            setData.verify = null
+            setData.verify_code = null
             setData.reset_code = null
             setData.verify_code = verify_code
-            setData.image = "https://ui-avatars.com/api/?size=256&name=" + setData.name
+            setData.image_profile = "https://ui-avatars.com/api/?size=256&name=" + setData.name
+
+            // setData.image_profile = "https://ui-avatars.com/api/?size=256&name=" + setData.name
+
 
             const result = await authModel.createUser(setData)
 
@@ -26,6 +29,7 @@ module.exports = {
 
             helper.response(response, 200, result)
         } catch (error) {
+            console.log(error)
             helper.response(response, 500, { message: "Email already exists!" })
         }
     },
