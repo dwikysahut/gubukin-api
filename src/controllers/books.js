@@ -1,6 +1,6 @@
 const booksModels = require('../models/books');
 const helper = require('../helpers');
-
+const redisClient = require('../config/redis');
 
 module.exports = {
     getBooks: async function (req, res) {
@@ -53,8 +53,23 @@ module.exports = {
             next,
             previous,
           };
-    
-          return helper.response(res, 200, result, pagination);
+
+          console.log(helper.convertObjectToPlainText(req.query));
+          redisClient.get(`getBooks:${helper.convertObjectToPlainText(req.query)}`, function (error, data) {
+            if (error) throw error;
+
+            if (data != null) {
+              const cache = JSON.parse(data);
+              return helper.response(res, 200, cache, pagination);
+            } else {
+              const cached = JSON.stringify(result, null, 0);
+              redisClient.setex(`getBooks:${helper.convertObjectToPlainText(req.query)}`, 3600, cached, function (error, reply) {
+                if (error) throw error;
+
+                console.log(reply);
+              })
+            }
+          })
         } catch (error) {
             console.log(error)
           return helper.response(res, 500, error);
