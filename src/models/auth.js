@@ -28,17 +28,6 @@ module.exports = {
             })
         })
     },
-    loginUser: function(getData) {
-        return new Promise (function(resolve, reject) {
-            connection.query('SELECT * FROM user WHERE email=?', getData.email, function (error, result) {
-                if (!error) {
-                    resolve(result[0])
-                } else {
-                    reject(new Error(error))
-                }
-            })
-        })
-    },
     checkUser: function(setData) {
         return new Promise(function (resolve, reject) {
             connection.query('SELECT * FROM user WHERE email=?', setData.email, function (error, result) {
@@ -53,6 +42,46 @@ module.exports = {
     verifyUser: function(setData) {
         return new Promise(function (resolve, reject) {
             const user = "UPDATE user SET verify='1', verify_code=null WHERE email='" + setData.email + "'"
+            connection.query(user, function (error, result) {
+                if (!error) {
+                    resolve(result[0])
+                } else {
+                    reject(new Error(error))
+                }
+            })
+        })
+    },
+    forgotAction: function (setData) {
+        return new Promise(function (resolve, reject) {
+            const forgotAction = "UPDATE user SET reset_code='" + setData.reset_code + "', verify_code=null WHERE email='" + setData.email + "'"
+            connection.query(forgotAction, function (error, result) {
+                if (!error) {
+                    const newResult = {
+                        id: result.insertId,
+                        ...setData
+                    }
+                    resolve(newResult)
+                } else {
+                    reject(new Error(error))
+                }
+            })
+        })
+    },
+    validateUser: function (setData) {
+        return new Promise(function (resolve, reject) {
+            const user = "UPDATE user SET reset_code=null, verify_code=null WHERE email='" + setData.email + "'"
+            connection.query(user, function (error, result) {
+                if (!error) {
+                    resolve(result[0])
+                } else {
+                    reject(new Error(error))
+                }
+            })
+        })
+    },
+    resetPassword: function (setData) {
+        return new Promise(function (resolve, reject) {
+            const user = "UPDATE user SET password='" + setData.newPassword + "' WHERE email='" + setData.email + "'"
             connection.query(user, function (error, result) {
                 if (!error) {
                     resolve(result[0])
