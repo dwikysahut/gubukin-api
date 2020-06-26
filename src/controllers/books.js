@@ -22,7 +22,7 @@ module.exports = {
       } else if (req.query.value === "title") {
         req.query.value = "books.title";
       } else if (req.query.value === "author") {
-        req.query.value = "author.name";
+        req.query.value = "books.author";
       } else if (req.query.value === "random") {
         req.query.value = "RAND()";
       }
@@ -59,7 +59,7 @@ module.exports = {
       console.log(helper.convertObjectToPlainText(req.query));
       redisClient.get(
         `getBooks:${helper.convertObjectToPlainText(req.query)}`,
-      async  function (error, data) {
+        async function (error, data) {
           if (error) throw error;
 
           if (data) {
@@ -81,7 +81,6 @@ module.exports = {
               function (error, reply) {
                 if (error) throw error;
                 console.log(reply);
-            
               }
             );
             return helper.response(res, 200, result, pagination);
