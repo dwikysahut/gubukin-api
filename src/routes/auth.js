@@ -6,9 +6,10 @@ const authController = require('../controllers/auth')
 
 Route.post('/register', authController.createUser)
 Route.post('/login', authController.loginUser)
-    // .post('/forgot', authController.forgotPassword)
-    // .put('/reset/:code', authController.resetPassword)
-Route.put('/verify', authController.verifyUser)
+Route.post('/forgot', authController.forgotPassword)
+Route.post('/reset', authController.resetPassword)
+Route.post('/verify', authController.verifyUser)
+Route.post('/validate', authController.validateUser)
 Route.post('/token', authRefreshToken, authController.refreshToken)
 
 module.exports = Route
