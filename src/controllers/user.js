@@ -1,5 +1,6 @@
 const userModels = require('../models/user');
 const helper = require('../helpers');
+const bcrypt = require('bcrypt')
 
 
 module.exports = {
@@ -37,9 +38,23 @@ module.exports = {
 
             // setData.image = request.files['image'][0].filename
             // setData.file_ebook=request.files['file_ebook'][0].filename
+            if(request.body.password){
+                const password = setData.password
+                const hash = bcrypt.hashSync(password, 18)
+                setData.password = hash
+            }
+        
             const id = request.params.id
             const user = await userModels.getUserByIdManage(id)
-            await userModels.deleteImageUser(user[0].image_profile)
+            if (request.files['image_profile'] && user[0].image_profile) {
+              try {
+                await userModels.deleteImageUser(user[0].image_profile)
+              } catch (error) {
+                  console.log('no file deleted')
+              }
+                
+
+        }
 
             const result = await userModels.putUser(setData,id)
 

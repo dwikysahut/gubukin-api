@@ -1,18 +1,14 @@
-const express = require('express');
-const Route = express.Router()
+const express = require("express");
+const Route = express.Router();
 
-const transactionController = require('../controllers/transactions');
+const transactionController = require("../controllers/transactions");
+const { authentication, authorization } = require("../middleware/auth");
 // const upload =require('../helpers/fileUpload')
 
+Route.get("/",authentication, authorization,transactionController.getAllTransactions)
+  .get("/:id",authentication, transactionController.getTransactionsByUser)
+  .post("/:id",authentication, transactionController.postTransaction)
+  .put("/:id", authentication,authorization,transactionController.putTransactionStatus);
+// .delete('/:id',transactionController.deleteBook)
 
-
-Route
-    .get('/',transactionController.getAllTransactions)
-    .get('/:id',transactionController.getTransactionsByUser)
-    .post('/:id',transactionController.postTransaction)
-    .put('/:id',transactionController.putTransactionStatus)
-    // .delete('/:id',transactionController.deleteBook)
-
-
-
-    module.exports = Route
+module.exports = Route;

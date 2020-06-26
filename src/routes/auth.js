@@ -1,8 +1,8 @@
-const express = require('express')
-const Route = express.Router()
-const { authRefreshToken } = require('../middleware/auth')
+const express = require("express");
+const Route = express.Router();
+const { authRefreshToken } = require("../middleware/auth");
 
-const authController = require('../controllers/auth')
+const authController = require("../controllers/auth");
 
 Route.post('/register', authController.createUser)
 Route.post('/login', authController.loginUser)
@@ -12,4 +12,4 @@ Route.post('/verify', authController.verifyUser)
 Route.post('/validate', authController.validateUser)
 Route.post('/token', authRefreshToken, authController.refreshToken)
 
-module.exports = Route
+module.exports = Route;
