@@ -59,28 +59,32 @@ module.exports = {
       console.log(helper.convertObjectToPlainText(req.query));
       redisClient.get(
         `getBooks:${helper.convertObjectToPlainText(req.query)}`,
-        function (error, data) {
+      async  function (error, data) {
           if (error) throw error;
 
-          if (data != null) {
+          if (data) {
             const cache = JSON.parse(data);
             return helper.response(res, 200, cache, pagination);
           } else {
-            const cached = JSON.stringify(result, null, 0);
+            const results = await booksModels.getBooks(
+              search,
+              value,
+              sort,
+              start,
+              limit
+            );
+            const cached = JSON.stringify(results, null, 0);
             redisClient.setex(
               `getBooks:${helper.convertObjectToPlainText(req.query)}`,
               3600,
               cached,
               function (error, reply) {
                 if (error) throw error;
-                else{
-                  console.log(reply);
-                  console.log('else')
-                  return helper.response(res, 200, data, pagination);
-                }
+                console.log(reply);
             
               }
             );
+            return helper.response(res, 200, result, pagination);
           }
         }
       );
