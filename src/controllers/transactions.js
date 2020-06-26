@@ -17,9 +17,18 @@ module.exports = {
     },
     getTransactionsByUser: async function (request, response) {
         try {
-            const id = request.params.id
-            const count = await transactionModel.getCountTransactionsUser(id);
-            const result = await transactionModel.getTransactionsByUser(id);
+            var user_id = 0
+            if(request.token.result.id===undefined){
+                user_id = request.token.result.result.id
+              
+         }
+         else {
+            user_id = request.token.result.id
+    
+         }
+            // const id = request.params.id
+            const count = await transactionModel.getCountTransactionsUser(user_id);
+            const result = await transactionModel.getTransactionsByUser(user_id);
 
             //   const totalData = data[0]["COUNT(*)"];
             //   const totalPage = Math.ceil(totalData / limit);

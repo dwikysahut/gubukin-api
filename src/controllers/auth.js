@@ -2,6 +2,8 @@ const authModel = require('../models/auth')
 const helper = require('../helpers')
 const jwt = require('jsonwebtoken')
 const dotenv = require('dotenv')
+const bcrypt = require('bcrypt');
+
 dotenv.config()
 
 module.exports = {
