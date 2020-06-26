@@ -1,5 +1,6 @@
 const userModels = require('../models/user');
 const helper = require('../helpers');
+const bcrypt = require('bcrypt')
 
 
 module.exports = {
@@ -37,6 +38,12 @@ module.exports = {
 
             // setData.image = request.files['image'][0].filename
             // setData.file_ebook=request.files['file_ebook'][0].filename
+            if(request.body.password){
+                const password = setData.password
+                const hash = bcrypt.hashSync(password, 18)
+                setData.password = hash
+            }
+        
             const id = request.params.id
             const user = await userModels.getUserByIdManage(id)
             if (request.files['image_profile'] && user[0].image_profile) {

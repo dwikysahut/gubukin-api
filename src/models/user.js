@@ -39,6 +39,7 @@ module.exports = {
                         id:id,
                         ...setData
                     }
+                    delete newData.password
                     resolve(newData)
                 } else{
                     reject(new Error(error))
