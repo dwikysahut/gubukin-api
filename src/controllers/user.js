@@ -39,7 +39,15 @@ module.exports = {
             // setData.file_ebook=request.files['file_ebook'][0].filename
             const id = request.params.id
             const user = await userModels.getUserByIdManage(id)
-            await userModels.deleteImageUser(user[0].image_profile)
+            if (request.files['image_profile'] && user[0].image_profile) {
+              try {
+                await userModels.deleteImageUser(user[0].image_profile)
+              } catch (error) {
+                  console.log('no file deleted')
+              }
+                
+
+        }
 
             const result = await userModels.putUser(setData,id)
 

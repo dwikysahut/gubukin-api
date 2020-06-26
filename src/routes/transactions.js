@@ -5,10 +5,10 @@ const transactionController = require("../controllers/transactions");
 const { authentication, authorization } = require("../middleware/auth");
 // const upload =require('../helpers/fileUpload')
 
-Route.get("/", transactionController.getAllTransactions)
-  .get("/:id", transactionController.getTransactionsByUser)
-  .post("/:id", transactionController.postTransaction)
-  .put("/:id", transactionController.putTransactionStatus);
+Route.get("/",authentication, authorization,transactionController.getAllTransactions)
+  .get("/:id",authentication, transactionController.getTransactionsByUser)
+  .post("/:id",authentication, transactionController.postTransaction)
+  .put("/:id", authentication,authorization,transactionController.putTransactionStatus);
 // .delete('/:id',transactionController.deleteBook)
 
 module.exports = Route;
