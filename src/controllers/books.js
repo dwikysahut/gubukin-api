@@ -73,8 +73,12 @@ module.exports = {
               cached,
               function (error, reply) {
                 if (error) throw error;
-
-                console.log(reply);
+                else{
+                  console.log(reply);
+                  console.log('else')
+                  return helper.response(res, 200, data, pagination);
+                }
+            
               }
             );
           }
