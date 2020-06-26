@@ -11,9 +11,8 @@ module.exports = {
             const password = setData.password
             const random_code = helper.random(6)
             const verify_code = bcrypt.hashSync(random_code, 10)
-             const hash = bcrypt.hashSync(password, 18)
+            const hash = bcrypt.hashSync(password, 18)
             setData.password = hash
-            setData.verify_code = null
             setData.reset_code = null
             setData.verify_code = verify_code
             setData.image_profile = "https://ui-avatars.com/api/?size=256&name=" + setData.name
@@ -37,16 +36,16 @@ module.exports = {
             const getData = request.body
             const password = getData.password
 
-            const result = await authModel.loginUser(getData)
+            const result = await authModel.checkUser(getData)
             const verifyPassword = result.password
             const compare = bcrypt.compareSync(password, verifyPassword)
             const isVerify = result.verify
 
             if (!compare) {
-                helper.response(response, 500, { message: "Invalid email or password!" })
+                return helper.response(response, 500, { message: "Invalid email or password!" })
             }
             if (isVerify === null) {
-                helper.response(response, 500, { message: "Please verify your account first!" })
+                return helper.response(response, 500, { message: "Please verify your account first!" })
             } else {
                 delete result.password
                 const token = jwt.sign({ result }, process.env.SECRET_KEY, { expiresIn: '20s' })
@@ -56,11 +55,10 @@ module.exports = {
                     token,
                     refreshToken
                 }
-                delete newData.password
-                helper.response(response, 200, newData)
+                return helper.response(response, 200, newData)
             }
         } catch (error) {
-            helper.response(response, 500, { message: "Failed to log in, please try again." })
+            return helper.response(response, 500, { message: "Failed to log in, please try again." })
         }
     },
     verifyUser: async function (request, response) {
@@ -68,17 +66,89 @@ module.exports = {
             const setData = request.body
             const otp_code = setData.verify_code
 
-            const result = await authModel.checkUser(setData)
-            const verify_code = result.verify_code
+            const checkUser = await authModel.checkUser(setData)
+            const verify_code = checkUser.verify_code
             const compare = bcrypt.compareSync(otp_code, verify_code)
             if (!compare) {
-                helper.response(response, 500, { message: "Invalid OTP Code!" })
+                return helper.response(response, 500, { message: "(Verification) Invalid OTP Code!" })
             } else {
-                const updateResult = await authModel.verifyUser(setData)
-                helper.response(response, 200, updateResult)
+                const result = await authModel.verifyUser(setData)
+                return helper.response(response, 200, { message: "Your account has been verified" })
             }
         } catch (error) {
-            helper.response(response, 500, { message: "Failed to verify account email not found." })
+            return helper.response(response, 500, { message: "Failed to verify user, account not found." })
+        }
+    },
+    forgotPassword: async function (request, response) {
+        try {
+            const setData = request.body
+            const random_code = helper.random(6)
+            const reset_code = bcrypt.hashSync(random_code, 14)
+
+            const checkUser = await authModel.checkUser(setData)
+            const verify = checkUser.verify
+            setData.email = checkUser.email
+            setData.reset_code = reset_code
+            setData.verify_code = checkUser.verify_code
+
+            if (verify === '1') {
+                const result = await authModel.forgotAction(setData)
+    
+                const htmlTemplate = '<center><h2>Your account must be validation</h2><hr>OTP Code : <h4>' + random_code + '</h4><br /><h3>This code valid for 24 Hours</h3></center>'
+                helper.nodemailer(result.email, 'OTP Validation Code', htmlTemplate)
+                return helper.response(response, 200, { message: "Please check your email to continue" })
+            } else {
+                return helper.response(response, 500, { message: "Please verify your account first!" })
+            }
+        } catch (error) {
+            return helper.response(response, 500, { message: "Forgot action failed, account not found." })
+        }
+    },
+    validateUser: async function (request, response) {
+        try {
+            const setData = request.body
+            const otp_code = setData.reset_code
+
+            const checkUser = await authModel.checkUser(setData)
+            const reset_code = checkUser.reset_code
+            const compare = bcrypt.compareSync(otp_code, reset_code)
+            if (!compare) {
+                return helper.response(response, 500, { message: "(Validation) Invalid OTP Code!" })
+            } else {
+                const verify_code = checkUser.verify_code
+                const verify = checkUser.verify
+                if (verify_code === null && verify === '1') {
+                    await authModel.validateUser(setData)
+                    return helper.response(response, 200, { message: "Your account has been validation" })
+                } else {
+                    return helper.response(response, 500, { message: "Please verify your account first!" })
+                }
+            }
+        } catch (error) {
+            return helper.response(response, 500, { message: "Failed to validate user, account not found." })
+        }
+    },
+    resetPassword: async function (request, response) {
+        try {
+            const setData = request.body
+            if (!setData) return helper.response(response, 500, { message: "Please input some data!" })
+
+            const checkUser = await authModel.checkUser(setData)
+            const reset_code = checkUser.reset_code
+            const verify = checkUser.verify
+
+            if (reset_code === null && verify === '1') {
+                const password = setData.password
+                const hash = bcrypt.hashSync(password, 18)
+                setData.newPassword = hash
+
+                await authModel.resetPassword(setData)
+                return helper.response(response, 200, { message: "Your password successfully updated" })
+            } else {
+                return helper.response(response, 500, { message: "Please validate your account first!" })
+            }
+        } catch (error) {
+            
         }
     },
     refreshToken: async function (request, response) {
@@ -87,13 +157,13 @@ module.exports = {
 
             const result = await authModel.refreshToken(token)
             if (result === undefined) {
-                helper.response(response, 500, { message: "Invalid email or password" })
+                return helper.response(response, 500, { message: "Invalid email or password" })
             } else {
                 const token = jwt.sign({ result }, process.env.SECRET_KEY, { expiresIn: '1h' })
-                helper.response(response, 200, { token: token })
+                return helper.response(response, 200, { token: token })
             }
         } catch (error) {
-            helper.response(response, 500, { message: "Failed to refresh token." })
+            return helper.response(response, 500, { message: "Failed to refresh token." })
         }
     }
 }
