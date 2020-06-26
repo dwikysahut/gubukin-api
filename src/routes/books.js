@@ -9,6 +9,8 @@ Route.get("/", booksController.getBooks)
   .get("/user/:idUser", booksController.getBooksByUser)
   .post("/", authentication, authorization, upload, booksController.postBook)
   .put("/:id", authentication, authorization, upload, booksController.putBook)
+  .put("/review/:id", authentication, authorization, upload, booksController.putBook)
+
   .delete("/:id", authentication, authorization, booksController.deleteBook);
 
 module.exports = Route;
