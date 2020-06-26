@@ -85,6 +85,16 @@ module.exports = {
       return helper.response(res, 500, error);
     }
   },
+  getBooksByUser: async function (request, response) {
+    try {
+      const idUser = request.params.idUser;
+
+      const result = await booksModels.getBooksByUser(idUser);
+      return helper.response(response, 200, result);
+    } catch (error) {
+      return helper.response(response, 500, { message: error.name });
+    }
+  },
   postBook: async function (request, response) {
     try {
       const setData = request.body;

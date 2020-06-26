@@ -31,6 +31,20 @@ module.exports = {
       );
     });
   },
+  getBooksByUser: function (idUser) {
+    return new Promise(function (resolve, reject) {
+      connection.query(
+        `SELECT books.id, books.title, books.description, books.id_category, category.name as category, books.id_author, author.name as author, books.image, books.file_ebook, books.id_user, user.name as user, books.price, books.status, books.created_at, books.updated_at FROM Books INNER JOIN category ON books.id_category = category.id INNER JOIN author ON books.id_author = author.id INNER JOIN user ON books.id_user = user.id WHERE user.id=${idUser}`,
+        function (err, result) {
+          if (!err) {
+            resolve(result);
+          } else {
+            reject(new Error(err));
+          }
+        }
+      );
+    });
+  },
   postBook: function (setData) {
     return new Promise(function (resolve, reject) {
       connection.query("INSERT INTO books SET ?", setData, function (
