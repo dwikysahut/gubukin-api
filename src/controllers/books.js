@@ -12,13 +12,13 @@ module.exports = {
       if (req.query.limit === undefined || req.query.limit === "") {
         req.query.limit = 6;
       }
-      if (req.query.sort === "false") {
-        req.query.sort = "DESC";
-      } else {
+      if (req.query.sort === "true") {
         req.query.sort = "ASC";
+      } else {
+        req.query.sort = "DESC";
       }
       if (req.query.value === undefined || req.query.value === "") {
-        req.query.value = "books.title";
+        req.query.value = "books.created_at";
       } else if (req.query.value === "title") {
         req.query.value = "books.title";
       } else if (req.query.value === "author") {
@@ -29,6 +29,17 @@ module.exports = {
       if (req.query.search === undefined || req.query.search === "") {
         req.query.search = "";
       }
+      if (req.query.price === undefined || req.query.price === "") {
+        req.query.price = ">=";
+      } else if (req.query.price === "free") {
+        req.query.price = "=";
+      } else if (req.query.price === "premium") {
+        req.query.price = ">";
+      }
+      if (req.query.status === undefined || req.query.status === "") {
+        req.query.status = "";
+      }
+
       const value = req.query.value;
       const sort = req.query.sort;
       const limit = parseInt(req.query.limit);
@@ -37,8 +48,12 @@ module.exports = {
       const next = parseInt(currentPage + 1);
       const previous = parseInt(currentPage - 1);
       const search = `%${req.query.search}%`;
-      const data = await booksModels.getCountBooks(search);
+      const status = `%${req.query.status}%`;
+      const price = req.query.price;
+      const data = await booksModels.getCountBooks(status, price, search);
       const result = await booksModels.getBooks(
+        status,
+        price,
         search,
         value,
         sort,
@@ -67,6 +82,8 @@ module.exports = {
             return helper.response(res, 200, cache, pagination);
           } else {
             const results = await booksModels.getBooks(
+              status,
+              price,
               search,
               value,
               sort,
@@ -92,12 +109,94 @@ module.exports = {
       return helper.response(res, 500, error);
     }
   },
-  getBooksByUser: async function (request, response) {
+  getBooksByUser: async function (req, response) {
     try {
-      const idUser = request.params.idUser;
+      if (req.query.page === undefined || req.query.page === "") {
+        req.query.page = 1;
+      }
 
-      const result = await booksModels.getBooksByUser(idUser);
-      return helper.response(response, 200, result);
+      if (req.query.limit === undefined || req.query.limit === "") {
+        req.query.limit = 6;
+      }
+      if (req.query.sort === "true") {
+        req.query.sort = "ASC";
+      } else {
+        req.query.sort = "DESC";
+      }
+      if (req.query.value === undefined || req.query.value === "") {
+        req.query.value = "books.created_at";
+      } else if (req.query.value === "title") {
+        req.query.value = "books.title";
+      } else if (req.query.value === "author") {
+        req.query.value = "books.author";
+      } else if (req.query.value === "random") {
+        req.query.value = "RAND()";
+      }
+      const idUser = req.params.idUser;
+      const value = req.query.value;
+      const sort = req.query.sort;
+      const limit = parseInt(req.query.limit);
+      const start = (req.query.page - 1) * limit;
+      const currentPage = parseInt(req.query.page);
+      const next = parseInt(currentPage + 1);
+      const previous = parseInt(currentPage - 1);
+
+      const data = await booksModels.getCountBooksByUser(idUser);
+      const result = await booksModels.getBooksByUser(
+        idUser,
+        value,
+        sort,
+        start,
+        limit
+      );
+      const totalData = data[0]["COUNT(*)"];
+      const totalPage = Math.ceil(totalData / limit);
+      const pagination = {
+        totalPage,
+        totalData,
+        currentPage,
+        limit,
+        next,
+        previous,
+      };
+
+      const query = {
+        idUser,
+        ...req.query,
+      };
+
+      redisClient.get(
+        `getBooksByUser:${helper.convertObjectToPlainText(query)}`,
+        async function (error, data) {
+          if (error) throw error;
+
+          if (data) {
+            const cache = JSON.parse(data);
+            return helper.response(response, 200, cache, pagination);
+          } else {
+            const results = await booksModels.getBooksByUser(
+              idUser,
+              value,
+              sort,
+              start,
+              limit
+            );
+            const cached = JSON.stringify(results, null, 0);
+            redisClient.setex(
+              `getBooksByUser:${helper.convertObjectToPlainText(query)}`,
+              3600,
+              cached,
+              function (error, reply) {
+                if (error) throw error;
+                console.log(reply);
+              }
+            );
+            return helper.response(response, 200, result, pagination);
+          }
+        }
+      );
+
+      // return helper.response(response, 200, result, pagination);
     } catch (error) {
       return helper.response(response, 500, { message: error.name });
     }

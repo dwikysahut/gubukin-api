@@ -3,10 +3,10 @@ const connection = require("../config/mysql");
 const fs = require("fs");
 
 module.exports = {
-  getCountBooks: function (search) {
+  getCountBooks: function (status, price, search) {
     return new Promise(function (resolve, reject) {
       connection.query(
-        `SELECT COUNT(*) FROM books INNER JOIN user ON books.id_user = user.id WHERE books.title LIKE "${search}" OR books.author LIKE "${search}"`,
+        `SELECT COUNT(*) FROM books INNER JOIN user ON books.id_user = user.id WHERE (books.status LIKE "${status}") AND (books.price ${price} 0) AND (books.title LIKE "${search}" OR books.author LIKE "${search}")`,
         function (err, result) {
           if (!err) {
             resolve(result);
@@ -17,10 +17,10 @@ module.exports = {
       );
     });
   },
-  getBooks: function (search, value, sort, start, limit) {
+  getBooks: function (status, price, search, value, sort, start, limit) {
     return new Promise(function (resolve, reject) {
       connection.query(
-        `SELECT books.id, books.title, books.description, books.category, books.author, books.image, books.file_ebook, books.id_user, user.name as user, books.price, books.status, books.created_at, books.updated_at FROM books INNER JOIN user ON books.id_user = user.id WHERE books.title LIKE "${search}" OR books.author LIKE "${search}" ORDER BY ${value} ${sort} LIMIT ${start}, ${limit}`,
+        `SELECT books.id, books.title, books.description, books.category, books.author, books.image, books.file_ebook, books.id_user, user.name as user, books.price, books.status, books.rating, books.created_at, books.updated_at FROM books INNER JOIN user ON books.id_user = user.id WHERE (books.status LIKE "${status}") AND (books.price ${price} 0) AND (books.title LIKE "${search}" OR books.author LIKE "${search}") ORDER BY ${value} ${sort} LIMIT ${start}, ${limit}`,
         function (err, result) {
           if (!err) {
             resolve(result);
@@ -31,10 +31,24 @@ module.exports = {
       );
     });
   },
-  getBooksByUser: function (idUser) {
+  getCountBooksByUser: function (idUser) {
     return new Promise(function (resolve, reject) {
       connection.query(
-        `SELECT books.id, books.title, books.description, books.category, books.author, books.image, books.file_ebook, books.id_user, user.name as user, books.price, books.status, books.created_at, books.updated_at FROM books INNER JOIN user ON books.id_user = user.id WHERE user.id=${idUser}`,
+        `SELECT COUNT(*) FROM books INNER JOIN user ON books.id_user = user.id WHERE user.id=${idUser}`,
+        function (err, result) {
+          if (!err) {
+            resolve(result);
+          } else {
+            reject(new Error(err));
+          }
+        }
+      );
+    });
+  },
+  getBooksByUser: function (idUser, value, sort, start, limit) {
+    return new Promise(function (resolve, reject) {
+      connection.query(
+        `SELECT books.id, books.title, books.description, books.category, books.author, books.image, books.file_ebook, books.id_user, user.name as user, books.price, books.status, books.rating, books.created_at, books.updated_at FROM books INNER JOIN user ON books.id_user = user.id WHERE user.id=${idUser} ORDER BY ${value} ${sort} LIMIT ${start}, ${limit}`,
         function (err, result) {
           if (!err) {
             resolve(result);
