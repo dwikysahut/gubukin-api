@@ -30,7 +30,7 @@ module.exports = {
             helper.response(response, 200, result)
         } catch (error) {
             console.log(error)
-            helper.response(response, 500, { message: "Email already exists!" })
+            helper.response(response, 500, { message: "Email already exists" })
         }
     },
     loginUser: async function (request, response) {
@@ -44,10 +44,10 @@ module.exports = {
             const isVerify = result.verify
 
             if (!compare) {
-                return helper.response(response, 500, { message: "Invalid email or password!" })
+                return helper.response(response, 500, { message: "The password you entered is incorrect" })
             }
             if (isVerify === null) {
-                return helper.response(response, 500, { message: "Please verify your account first!" })
+                return helper.response(response, 500, { message: "Please verify your account first" })
             } else {
                 delete result.password
                 const token = jwt.sign({ result }, process.env.SECRET_KEY, { expiresIn: '20s' })
@@ -60,7 +60,7 @@ module.exports = {
                 return helper.response(response, 200, newData)
             }
         } catch (error) {
-            return helper.response(response, 500, { message: "Failed to log in, please try again." })
+            return helper.response(response, 500, { message: "The email you entered is incorrect" })
         }
     },
     verifyUser: async function (request, response) {
@@ -72,13 +72,13 @@ module.exports = {
             const verify_code = checkUser.verify_code
             const compare = bcrypt.compareSync(otp_code, verify_code)
             if (!compare) {
-                return helper.response(response, 500, { message: "(Verification) Invalid OTP Code!" })
+                return helper.response(response, 500, { message: "(Verification) Invalid OTP Code" })
             } else {
                 const result = await authModel.verifyUser(setData)
                 return helper.response(response, 200, { message: "Your account has been verified" })
             }
         } catch (error) {
-            return helper.response(response, 500, { message: "Failed to verify user, account not found." })
+            return helper.response(response, 500, { message: "Failed to verify user, account not found" })
         }
     },
     forgotPassword: async function (request, response) {
@@ -100,10 +100,10 @@ module.exports = {
                 helper.nodemailer(result.email, 'OTP Validation Code', htmlTemplate)
                 return helper.response(response, 200, { message: "Please check your email to continue" })
             } else {
-                return helper.response(response, 500, { message: "Please verify your account first!" })
+                return helper.response(response, 500, { message: "Please verify your account first" })
             }
         } catch (error) {
-            return helper.response(response, 500, { message: "Forgot action failed, account not found." })
+            return helper.response(response, 500, { message: "Forgot action failed, account not found" })
         }
     },
     validateUser: async function (request, response) {
@@ -115,7 +115,7 @@ module.exports = {
             const reset_code = checkUser.reset_code
             const compare = bcrypt.compareSync(otp_code, reset_code)
             if (!compare) {
-                return helper.response(response, 500, { message: "(Validation) Invalid OTP Code!" })
+                return helper.response(response, 500, { message: "(Validation) Invalid OTP Code" })
             } else {
                 const verify_code = checkUser.verify_code
                 const verify = checkUser.verify
@@ -123,17 +123,17 @@ module.exports = {
                     await authModel.validateUser(setData)
                     return helper.response(response, 200, { message: "Your account has been validation" })
                 } else {
-                    return helper.response(response, 500, { message: "Please verify your account first!" })
+                    return helper.response(response, 500, { message: "Please verify your account first" })
                 }
             }
         } catch (error) {
-            return helper.response(response, 500, { message: "Failed to validate user, account not found." })
+            return helper.response(response, 500, { message: "Failed to validate user, account not found" })
         }
     },
     resetPassword: async function (request, response) {
         try {
             const setData = request.body
-            if (!setData) return helper.response(response, 500, { message: "Please input some data!" })
+            if (!setData) return helper.response(response, 500, { message: "Please input some data" })
 
             const checkUser = await authModel.checkUser(setData)
             const reset_code = checkUser.reset_code
@@ -147,7 +147,7 @@ module.exports = {
                 await authModel.resetPassword(setData)
                 return helper.response(response, 200, { message: "Your password successfully updated" })
             } else {
-                return helper.response(response, 500, { message: "Please validate your account first!" })
+                return helper.response(response, 500, { message: "Please validate your account first" })
             }
         } catch (error) {
             
@@ -165,7 +165,7 @@ module.exports = {
                 return helper.response(response, 200, { token: token })
             }
         } catch (error) {
-            return helper.response(response, 500, { message: "Failed to refresh token." })
+            return helper.response(response, 500, { message: "Failed to refresh token" })
         }
     }
 }
