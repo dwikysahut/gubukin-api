@@ -122,9 +122,9 @@ module.exports = {
         })
 
     },
-    deleteBook: function(id){
+    deleteTransaction: function(id){
         return new Promise(function(resolve, reject) {
-            connection.query('DELETE from books WHERE id = ?', id, function(error, result) {
+            connection.query('DELETE from transactions WHERE id = ?', id, function(error, result) {
                 if (!error) {
                     const newData = {
                         id: id,
@@ -137,16 +137,16 @@ module.exports = {
             })
         })
     },
-    getBookById: function(id) {
-        return new Promise(function(resolve, reject) {
+    // getBookById: function(id) {
+    //     return new Promise(function(resolve, reject) {
 
-            connection.query('SELECT * from books where id= ?', id, function(error, result) {
-                if (!error) {
-                    resolve(result)
-                } else {
-                    reject(new Error(error))
-                }
-            })
-        })
-    },
+    //         connection.query('SELECT * from books where id= ?', id, function(error, result) {
+    //             if (!error) {
+    //                 resolve(result)
+    //             } else {
+    //                 reject(new Error(error))
+    //             }
+    //         })
+    //     })
+    // },
 }

@@ -8,7 +8,7 @@ const { authentication, authorization } = require("../middleware/auth");
 Route.get("/",authentication, authorization,transactionController.getAllTransactions)
   .get("/user",authentication, transactionController.getTransactionsByUser)
   .post("/:id",authentication, transactionController.postTransaction)
-  .put("/:id", authentication,authorization,transactionController.putTransactionStatus);
-// .delete('/:id',transactionController.deleteBook)
+  .put("/:id", authentication,authorization,transactionController.putTransactionStatus)
+  .delete('/:id',authentication,transactionController.deleteTransaction)
 
 module.exports = Route;

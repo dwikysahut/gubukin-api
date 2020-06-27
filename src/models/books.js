@@ -48,7 +48,21 @@ module.exports = {
   getBooksByUser: function (idUser, value, sort, start, limit) {
     return new Promise(function (resolve, reject) {
       connection.query(
-        `SELECT books.id, books.title, books.description, books.category, books.author, books.image, books.file_ebook, books.id_user, user.name as user, books.price, books.status, books.rating, books.created_at, books.updated_at FROM books INNER JOIN user ON books.id_user = user.id WHERE user.id=${idUser} ORDER BY ${value} ${sort} LIMIT ${start}, ${limit}`,
+        `SELECT books.id, books.title, books.description, books.category, books.author, books.image, books.file_ebook, books.id_user, user.name as user, books.price, books.status, books.rating,books.limit_file, books.created_at, books.updated_at FROM books INNER JOIN user ON books.id_user = user.id WHERE user.id=${idUser} ORDER BY ${value} ${sort} LIMIT ${start}, ${limit}`,
+        function (err, result) {
+          if (!err) {
+            resolve(result);
+          } else {
+            reject(new Error(err));
+          }
+        }
+      );
+    });
+  },
+  getDataBookByUser: function (idUser) {
+    return new Promise(function (resolve, reject) {
+      connection.query(
+        `SELECT * FROM books  WHERE books.id_user=${idUser}`,
         function (err, result) {
           if (!err) {
             resolve(result);

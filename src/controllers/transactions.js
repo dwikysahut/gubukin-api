@@ -29,9 +29,7 @@ module.exports = {
             // const id = request.params.id
             const count = await transactionModel.getCountTransactionsUser(user_id);
             const result = await transactionModel.getTransactionsByUser(user_id);
-
-            //   const totalData = data[0]["COUNT(*)"];
-            //   const totalPage = Math.ceil(totalData / limit);
+            //disini akan update tottal Item saat ditambah atau dihapus
             let totalPrice = 0;
             for (let i = 0; i < result.length; i++) {
                 totalPrice += result[i].price;
@@ -53,14 +51,20 @@ module.exports = {
 
 
         try {
-            const id_buyer = request.body.id_buyer;
-
+            // const id_buyer = request.body.id_buyer;
+            let id_buyer = 0
+            if (request.token.result.id === undefined) {
+                id_buyer = request.token.result.result.id
+            }
+            else {
+                id_buyer = request.token.result.id
+            }
             //  console.log("asdass"+request.token.result)
             const id_book = request.params.id
             const dataBook = await booksModel.getBookById(id_book)
 
             // console.log("asdass"+request.token.result.id)
-            const postResult = await transactionModel.postTransaction(id_buyer, id_book, dataBook.id_user)
+            const postResult = await transactionModel.postTransaction(id_buyer, id_book, dataBook[0].id_user)
             const result = await transactionModel.getTransactionsById(postResult.id)
 
             // await borrowModels.borrowedBook(book_id)
@@ -83,7 +87,7 @@ module.exports = {
             const id_transaction = request.params.id;
 
             //  console.log("asdass"+request.token.result)
-            const id_book = request.params.id
+            // const id_book = request.params.id
             const data = await transactionModel.putTransactionStatus("Sudah Dibayar",id_transaction)
 
             // console.log("asdass"+request.token.result.id)
@@ -100,4 +104,15 @@ module.exports = {
         }
 
     },
+    deleteTransaction: async function (req, res) {
+        try {
+          const id = req.params.id;
+          const result = await transactionModel.deleteTransaction(id);
+    
+          return helper.response(res, 200, {message:'transaction cancelled',result});
+        } catch (error) {
+            console.log(error)
+          return helper.response(res, 500, error);
+        }
+      },
 }

@@ -1,6 +1,8 @@
 const booksModels = require("../models/books");
 const helper = require("../helpers");
 const redisClient = require("../config/redis");
+const userModels = require("../models/user");
+
 
 module.exports = {
   getBooks: async function (req, res) {
@@ -205,9 +207,44 @@ module.exports = {
     try {
       const setData = request.body;
       setData.image = request.files["image"][0].filename;
+      
+      let user_id = 0
+      if (request.token.result.id === undefined) {
+        user_id = request.token.result.result.id
+      }
+      else {
+        user_id = request.token.result.id
+      }
+      setData.id_user=user_id;
       setData.file_ebook = request.files["file_ebook"][0].filename;
-      const result = await booksModels.postBook(setData);
-      return helper.response(response, 200, { result });
+      setData.limit_file = request.files['file_ebook'][0].size;
+      const bookByUser = await booksModels.getDataBookByUser(user_id);
+      let totalFileSize = 0;
+      for (let i = 0; i < bookByUser.length; i++) {
+        totalFileSize += bookByUser[i]['limit_file'];
+      }
+     
+      if(totalFileSize+setData.limit_file>10000000){
+        console.log(totalFileSize+setData.limit_file)
+        const book = await booksModels.getBookById(user_id);
+        //delete file di local, karena tidak jadi post.
+        await booksModels.deletefileBook(request.files["image"][0].filename, "");
+        await booksModels.deletefileBook("", request.files["file_ebook"][0].filename);
+        return helper.response(response, 401, { message:'Your account exceeds the limit' });
+        // console.log(error);
+      }
+      else{
+        //bentuk byte
+        const total=totalFileSize+setData.limit_file;
+
+        //konversi ke mb
+        const sizeMb = (total / Math.pow(1024,2))
+        // console.log(total / Math.pow(1024,2))
+        console.log(sizeMb)
+        await userModels.putUser({total_limit:sizeMb},user_id);
+        const result = await booksModels.postBook(setData);
+        return helper.response(response, 200, { result });
+      }
     } catch (error) {
       console.log(error);
       return helper.response(response, 500, { message: error.name });
@@ -226,12 +263,6 @@ module.exports = {
         setData.file_ebook = request.files["file_ebook"][0].filename;
         await booksModels.deletefileBook("", book[0].file_ebook);
       }
-
-      // await booksModels.deletefileBook(book[0].image,book[0].file_ebook)
-
-      // setData.image = request.files['image'][0].filename
-      // setData.file_ebook=request.files['file_ebook'][0].filename
-
       const result = await booksModels.putBook(setData, id);
       return helper.response(response, 200, result);
     } catch (error) {
@@ -241,11 +272,22 @@ module.exports = {
   },
   deleteBook: async function (request, response) {
     try {
-      const id = request.params.id;
-      const book = await booksModels.getBookById(id);
+      const id_book = request.params.id;
+      const book = await booksModels.getBookById(id_book);
+      let user_id = 0
+      if (request.token.result.id === undefined) {
+        user_id = request.token.result.result.id
+      }
+      else {
+        user_id = request.token.result.id
+      }
+      const user = await userModels.getUserById(user_id);
+      let updateTotalLimit= user[0].total_limit-book[0].limit_file
+       await userModels.putUser({total_limit:updateTotalLimit},user_id);
+
       await booksModels.deletefileBook(book[0].image, book[0].file_ebook);
 
-      const result = await booksModels.deleteBook(id);
+      const result = await booksModels.deleteBook(id_book);
 
       return helper.response(response, 200, result);
     } catch (error) {

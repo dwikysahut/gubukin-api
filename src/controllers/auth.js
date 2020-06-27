@@ -122,7 +122,13 @@ module.exports = {
                 if (verify_code === null && verify === '1') {
                     await authModel.validateUser(setData)
                     return helper.response(response, 200, { message: "Your account has been validation" })
-                } else {
+                } 
+                else if(verify_code === null && verify === '0'){
+                    return helper.response(response, 401, { message: "Your Account Has Banned" })
+
+                }
+                else {
+
                     return helper.response(response, 401, { message: "Please verify your account first" })
                 }
             }
