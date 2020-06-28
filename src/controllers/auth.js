@@ -57,7 +57,7 @@ module.exports = {
       } else {
         delete result.password;
         const token = jwt.sign({ result }, process.env.SECRET_KEY, {
-          expiresIn: "20s",
+          expiresIn: "10h",
         });
         const refreshToken = jwt.sign(
           { result },
@@ -205,7 +205,7 @@ module.exports = {
         });
       } else {
         const token = jwt.sign({ result }, process.env.SECRET_KEY, {
-          expiresIn: "1h",
+          expiresIn: "2d",
         });
         return helper.response(response, 200, { token: token });
       }
