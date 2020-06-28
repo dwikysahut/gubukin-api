@@ -3,7 +3,6 @@ const helper = require("../helpers");
 const redisClient = require("../config/redis");
 const userModels = require("../models/user");
 
-
 module.exports = {
   getBooks: async function (req, res) {
     try {
@@ -73,39 +72,40 @@ module.exports = {
         previous,
       };
 
-      console.log(helper.convertObjectToPlainText(req.query));
-      redisClient.get(
-        `getBooks:${helper.convertObjectToPlainText(req.query)}`,
-        async function (error, data) {
-          if (error) throw error;
+      // console.log(helper.convertObjectToPlainText(req.query));
+      // redisClient.get(
+      //   `getBooks:${helper.convertObjectToPlainText(req.query)}`,
+      //   async function (error, data) {
+      //     if (error) throw error;
 
-          if (data) {
-            const cache = JSON.parse(data);
-            return helper.response(res, 200, cache, pagination);
-          } else {
-            const results = await booksModels.getBooks(
-              status,
-              price,
-              search,
-              value,
-              sort,
-              start,
-              limit
-            );
-            const cached = JSON.stringify(results, null, 0);
-            redisClient.setex(
-              `getBooks:${helper.convertObjectToPlainText(req.query)}`,
-              3600,
-              cached,
-              function (error, reply) {
-                if (error) throw error;
-                console.log(reply);
-              }
-            );
-            return helper.response(res, 200, result, pagination);
-          }
-        }
-      );
+      //     if (data) {
+      //       const cache = JSON.parse(data);
+      //       return helper.response(res, 200, cache, pagination);
+      //     } else {
+      //       const results = await booksModels.getBooks(
+      //         status,
+      //         price,
+      //         search,
+      //         value,
+      //         sort,
+      //         start,
+      //         limit
+      //       );
+      //       const cached = JSON.stringify(results, null, 0);
+      //       redisClient.setex(
+      //         `getBooks:${helper.convertObjectToPlainText(req.query)}`,
+      //         3600,
+      //         cached,
+      //         function (error, reply) {
+      //           if (error) throw error;
+      //           console.log(reply);
+      //         }
+      //       );
+      //       return helper.response(res, 200, result, pagination);
+      //     }
+      //   }
+      // );
+      return helper.response(res, 200, result, pagination);
     } catch (error) {
       console.log(error);
       return helper.response(res, 500, error);
@@ -167,38 +167,38 @@ module.exports = {
         ...req.query,
       };
 
-      redisClient.get(
-        `getBooksByUser:${helper.convertObjectToPlainText(query)}`,
-        async function (error, data) {
-          if (error) throw error;
+      // redisClient.get(
+      //   `getBooksByUser:${helper.convertObjectToPlainText(query)}`,
+      //   async function (error, data) {
+      //     if (error) throw error;
 
-          if (data) {
-            const cache = JSON.parse(data);
-            return helper.response(response, 200, cache, pagination);
-          } else {
-            const results = await booksModels.getBooksByUser(
-              idUser,
-              value,
-              sort,
-              start,
-              limit
-            );
-            const cached = JSON.stringify(results, null, 0);
-            redisClient.setex(
-              `getBooksByUser:${helper.convertObjectToPlainText(query)}`,
-              3600,
-              cached,
-              function (error, reply) {
-                if (error) throw error;
-                console.log(reply);
-              }
-            );
-            return helper.response(response, 200, result, pagination);
-          }
-        }
-      );
+      //     if (data) {
+      //       const cache = JSON.parse(data);
+      //       return helper.response(response, 200, cache, pagination);
+      //     } else {
+      //       const results = await booksModels.getBooksByUser(
+      //         idUser,
+      //         value,
+      //         sort,
+      //         start,
+      //         limit
+      //       );
+      //       const cached = JSON.stringify(results, null, 0);
+      //       redisClient.setex(
+      //         `getBooksByUser:${helper.convertObjectToPlainText(query)}`,
+      //         3600,
+      //         cached,
+      //         function (error, reply) {
+      //           if (error) throw error;
+      //           console.log(reply);
+      //         }
+      //       );
+      //       return helper.response(response, 200, result, pagination);
+      //     }
+      //   }
+      // );
 
-      // return helper.response(response, 200, result, pagination);
+      return helper.response(response, 200, result, pagination);
     } catch (error) {
       return helper.response(response, 500, { message: error.name });
     }
@@ -207,41 +207,47 @@ module.exports = {
     try {
       const setData = request.body;
       setData.image = request.files["image"][0].filename;
-      
-      let user_id = 0
+
+      let user_id = 0;
       if (request.token.result.id === undefined) {
-        user_id = request.token.result.result.id
+        user_id = request.token.result.result.id;
+      } else {
+        user_id = request.token.result.id;
       }
-      else {
-        user_id = request.token.result.id
-      }
-      setData.id_user=user_id;
+      setData.id_user = user_id;
       setData.file_ebook = request.files["file_ebook"][0].filename;
-      setData.limit_file = request.files['file_ebook'][0].size;
+      setData.limit_file = request.files["file_ebook"][0].size;
       const bookByUser = await booksModels.getDataBookByUser(user_id);
       let totalFileSize = 0;
       for (let i = 0; i < bookByUser.length; i++) {
-        totalFileSize += bookByUser[i]['limit_file'];
+        totalFileSize += bookByUser[i]["limit_file"];
       }
-     
-      if(totalFileSize+setData.limit_file>10000000){
-        console.log(totalFileSize+setData.limit_file)
+
+      if (totalFileSize + setData.limit_file > 10000000) {
+        console.log(totalFileSize + setData.limit_file);
         const book = await booksModels.getBookById(user_id);
         //delete file di local, karena tidak jadi post.
-        await booksModels.deletefileBook(request.files["image"][0].filename, "");
-        await booksModels.deletefileBook("", request.files["file_ebook"][0].filename);
-        return helper.response(response, 401, { message:'Your account exceeds the limit' });
+        await booksModels.deletefileBook(
+          request.files["image"][0].filename,
+          ""
+        );
+        await booksModels.deletefileBook(
+          "",
+          request.files["file_ebook"][0].filename
+        );
+        return helper.response(response, 401, {
+          message: "Your account exceeds the limit",
+        });
         // console.log(error);
-      }
-      else{
+      } else {
         //bentuk byte
-        const total=totalFileSize+setData.limit_file;
+        const total = totalFileSize + setData.limit_file;
 
         //konversi ke mb
-        const sizeMb = (total / Math.pow(1024,2))
+        const sizeMb = total / Math.pow(1024, 2);
         // console.log(total / Math.pow(1024,2))
-        console.log(sizeMb)
-        await userModels.putUser({total_limit:sizeMb},user_id);
+        console.log(sizeMb);
+        await userModels.putUser({ total_limit: sizeMb }, user_id);
         const result = await booksModels.postBook(setData);
         return helper.response(response, 200, { result });
       }
@@ -274,16 +280,15 @@ module.exports = {
     try {
       const id_book = request.params.id;
       const book = await booksModels.getBookById(id_book);
-      let user_id = 0
+      let user_id = 0;
       if (request.token.result.id === undefined) {
-        user_id = request.token.result.result.id
-      }
-      else {
-        user_id = request.token.result.id
+        user_id = request.token.result.result.id;
+      } else {
+        user_id = request.token.result.id;
       }
       const user = await userModels.getUserById(user_id);
-      let updateTotalLimit= user[0].total_limit-book[0].limit_file
-       await userModels.putUser({total_limit:updateTotalLimit},user_id);
+      let updateTotalLimit = user[0].total_limit - book[0].limit_file;
+      await userModels.putUser({ total_limit: updateTotalLimit }, user_id);
 
       await booksModels.deletefileBook(book[0].image, book[0].file_ebook);
 
