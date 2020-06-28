@@ -39,7 +39,7 @@ module.exports = {
     try {
       const setData = request.body;
       if (request.files["image_profile"]) {
-        setData.image_profile = request.files["image_profile"][0].filename;
+        setData.image_profile = `http://3.92.162.78:8080/imageProfile/${request.files["image_profile"][0].filename}`;
       }
 
       // setData.image = request.files['image'][0].filename
